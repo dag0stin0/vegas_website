@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<base href="/hotstyle/">
+<title>Hotstyle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Sora:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&family=Press+Start+2P&display=swap">
+<style>
+:root{--bg:#0B0908;--sf:#141210;--sf2:#1C1917;--tx:#EDE6DA;--tm:#8A7F72;--tf:#4A4238;--gold:#C8A44E;--gd:rgba(200,164,78,.1);--amber:#D4740E;--red:#7A1818;--bdr:rgba(200,164,78,.1);--sh:0 4px 30px rgba(0,0,0,.5)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--tx);font-size:18px;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden;width:100%}
+@media(min-width:801px){body{zoom:.90}}
+#deck-content{display:none}
+#deck-content.show{display:block}
+@media(min-width:801px){body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}}
+
+.progress{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--red),var(--gold),var(--amber));z-index:300;width:0%;transition:width .2s}
+.pgc{position:fixed;bottom:1.2rem;right:1.5rem;z-index:200;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--tf);letter-spacing:.1em}
+
+/* ═══ CURTAIN ═══ */
+.theater{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#080604;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.theater-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;opacity:.6}
+.stage-glow{position:absolute;inset:0;z-index:2;background:radial-gradient(ellipse 60% 55% at 50% 45%,rgba(200,164,78,.18) 0%,rgba(212,116,14,.06) 35%,transparent 65%)}
+.stage-vig{position:absolute;inset:0;z-index:3;background:radial-gradient(ellipse at center,transparent 40%,rgba(8,6,4,.7) 100%)}
+.c-photo{position:absolute;inset:0;background:url('curtain-4.jpg') center/cover no-repeat;z-index:10}
+.c-photo.l{clip-path:inset(0 50% 0 0);transition:clip-path 1.8s cubic-bezier(.76,0,.24,1)}
+.c-photo.r{clip-path:inset(0 0 0 50%);transition:clip-path 1.8s cubic-bezier(.76,0,.24,1)}
+.theater.open .c-photo.l{clip-path:inset(0 100% 0 0)}
+.theater.open .c-photo.r{clip-path:inset(0 0 0 100%)}
+.theater.open .curtain-hint{opacity:0;transition:opacity .4s}
+@keyframes pulse-hint{0%,100%{opacity:.5}50%{opacity:1}}
+.reveal{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;opacity:0;transform:scale(.96);transition:opacity 1.2s ease .5s,transform 1.2s ease .5s}
+.theater.open .reveal{opacity:1;transform:scale(1)}
+.reveal-m{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--tm);letter-spacing:.22em;text-transform:uppercase}
+
+/* ═══ SLIDES ═══ */
+.s{min-height:100vh;padding:5rem 2.5rem;max-width:900px;margin:0 auto;display:flex;flex-direction:column;justify-content:center}
+.s>*{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease}
+.s>*:nth-child(1){transition-delay:.05s}.s>*:nth-child(2){transition-delay:.12s}.s>*:nth-child(3){transition-delay:.19s}.s>*:nth-child(4){transition-delay:.26s}.s>*:nth-child(5){transition-delay:.33s}.s>*:nth-child(6){transition-delay:.4s}.s>*:nth-child(7){transition-delay:.47s}.s>*:nth-child(8){transition-delay:.54s}
+.s.v>*{opacity:1;transform:none}
+
+.snum{font-family:'Bodoni Moda',serif;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:900;color:var(--amber);line-height:1;margin-bottom:.4rem;letter-spacing:-.01em}
+.sec-h{font-family:'Bodoni Moda',serif;font-size:clamp(1.8rem,4.5vw,2.8rem);font-weight:900;line-height:1.08;letter-spacing:-.01em;margin-bottom:.8rem}
+.sec-h em{font-style:italic;color:var(--gold)}
+.blink::after{content:'_';color:var(--amber);animation:bk 1s step-end infinite}
+@keyframes bk{0%,100%{opacity:1}50%{opacity:0}}
+.sub{color:#BFB5A5;font-size:1.15rem;max-width:52ch;line-height:1.75;margin-bottom:1.5rem}
+
+/* Hero copy */
+.hero-copy{font-family:'Bodoni Moda',serif;font-size:clamp(1.25rem,2.6vw,1.85rem);font-weight:400;font-style:italic;color:var(--tx);line-height:1.65;max-width:62ch;margin-bottom:2rem}
+.hero-copy strong{font-weight:700;color:var(--gold);font-style:normal}
+.hero-copy + .hero-sub{font-family:'Sora',sans-serif;font-size:clamp(1rem,2vw,1.25rem);color:var(--tm);line-height:1.85;max-width:56ch;margin-bottom:2rem}
+
+/* Quote */
+.quote-strip{min-height:35vh;display:flex;align-items:center;justify-content:center;padding:3rem 2rem;text-align:center;position:relative;overflow:hidden}
+.quote-strip::before{content:'';position:absolute;inset:0;background:url('New%20assets/halftone-simple-1024x927-328.png') repeat;opacity:.03;mix-blend-mode:overlay;pointer-events:none}
+.quote-strip blockquote{font-family:'Bodoni Moda',serif;font-size:clamp(1.8rem,4.5vw,3.2rem);font-weight:900;font-style:italic;color:var(--tx);max-width:700px;line-height:1.25}
+.quote-strip blockquote span{color:var(--gold)}
+
+/* ═══ FORMAT ═══ */
+.fmt-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.6rem;margin:1.5rem 0}
+.fmt-card{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:3/4;cursor:default}
+.fmt-card img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.fmt-card:hover img{transform:scale(1.08)}
+.fmt-card .fmt-ov{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,.15) 45%,rgba(0,0,0,.25) 100%);display:flex;align-items:flex-end;padding:1rem .8rem}
+.fmt-card .fmt-nm{font-family:'Bodoni Moda',serif;font-size:1rem;font-weight:700;color:var(--tx)}
+
+/* Mosaic */
+.mosaic{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin:1.5rem 0;border-radius:10px;overflow:hidden}
+.mosaic img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
+.mosaic img:hover{transform:scale(1.05)}
+
+/* ═══ LINEUP ═══ */
+.lineup{display:flex;flex-direction:column;gap:1.2rem;margin:1.5rem 0}
+.lu-act{display:flex;gap:1.2rem;align-items:center;padding:1rem 0;border-bottom:1px solid rgba(200,164,78,.08)}
+.lu-act:last-of-type{border-bottom:none}
+.lu-photo{width:80px;height:80px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.lu-info{flex:1;min-width:0}
+.lu-name{font-family:'Bodoni Moda',serif;font-size:1.3rem;font-weight:900;text-transform:uppercase;line-height:1.15;letter-spacing:-.01em}
+.lu-role{font-family:'JetBrains Mono',monospace;font-size:clamp(.75rem,1.4vw,.85rem);color:#6dbf8b;text-transform:uppercase;letter-spacing:.06em;margin-top:.15rem}
+.lu-stats{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+.lu-stat{font-family:'JetBrains Mono',monospace;font-size:clamp(.8rem,1.5vw,.9rem);background:rgba(200,164,78,.35);color:#fff;padding:.35rem .75rem;border-radius:4px;border:1px solid rgba(200,164,78,.5);font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.lu-tba{font-family:'Sora',sans-serif;font-style:italic;font-size:.9rem;color:var(--tf);padding:1.2rem 0 0;letter-spacing:.03em}
+
+/* ═══ TRACK ═══ */
+.track-wrap{position:relative;border-radius:14px;overflow:hidden;margin:2rem 0;padding:3rem 2rem}
+.track-bg{position:absolute;inset:0;z-index:0}
+.track-bg img{width:100%;height:100%;object-fit:cover;opacity:.08}
+.track-bg::after{content:'';position:absolute;inset:0;background:rgba(11,9,8,.9)}
+.track{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;position:relative;z-index:2}
+.tr{background:rgba(20,18,16,.88);border:1px solid var(--bdr);border-radius:10px;padding:1.8rem;text-align:center;position:relative;overflow:hidden;backdrop-filter:blur(8px)}
+.tr::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.tr:nth-child(1)::before{background:var(--tf)}.tr:nth-child(2)::before{background:var(--gold)}.tr:nth-child(3)::before{background:var(--amber)}
+.tr-yr{font-family:'JetBrains Mono',monospace;font-size:clamp(.8rem,1.5vw,.9rem);color:var(--tm);letter-spacing:.12em;text-transform:uppercase}
+.tr-n{font-family:'Bodoni Moda',serif;font-size:3rem;font-weight:900;color:var(--amber);line-height:1.1;margin:.3rem 0}
+.tr-d{font-size:.88rem;color:var(--tm)}
+.stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);font-family:'Bodoni Moda',serif;font-size:1.5rem;font-weight:900;color:#C4342D;border:2px solid #C4342D;padding:.2rem 1rem;border-radius:4px;text-transform:uppercase;letter-spacing:.1em;opacity:.85;text-shadow:0 0 8px rgba(0,0,0,.8);pointer-events:none;white-space:nowrap}
+
+/* ═══ NAPKIN ═══ */
+.napkin-scene{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:4rem 2rem}
+.napkin{position:relative;width:min(820px,94vw);background:url('linen-napkin.jpg') center/cover no-repeat;border-radius:4px;transform:rotate(-1.5deg);box-shadow:0 8px 40px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.3);padding:clamp(3rem,7vw,4.5rem) clamp(2.5rem,6vw,3.5rem) clamp(3.5rem,8vw,5rem)}
+.napkin::after{content:'';position:absolute;inset:10px;border:1.5px solid rgba(255,107,0,.5);border-radius:2px;pointer-events:none}
+.napkin-brand{position:absolute;bottom:clamp(.8rem,2vw,1.2rem);left:50%;transform:translateX(-50%);font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;color:#1a1510;letter-spacing:.12em;text-transform:uppercase}
+.napkin-title{font-family:'Bodoni Moda',serif;font-size:clamp(1.5rem,3.5vw,2rem);font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#5a4a38;margin-bottom:1.2rem;opacity:1}
+.napkin-row{display:flex;gap:1rem;padding:.8rem 0;border-bottom:1px solid rgba(90,74,56,.15)}
+.napkin-row:last-child{border-bottom:none}
+.napkin-time{font-family:'JetBrains Mono',monospace;font-size:clamp(.95rem,1.8vw,1.1rem);color:#D4740E;font-weight:700;min-width:5rem;flex-shrink:0;padding-top:.1rem}
+.napkin-sep{color:#D4740E;font-weight:300;font-size:1.2rem;opacity:.5;flex-shrink:0;padding-top:.1rem}
+.napkin-desc{font-family:'Bodoni Moda',serif;font-style:italic;font-size:clamp(1rem,2vw,1.2rem);color:#1a1208;line-height:1.7}
+
+/* ═══ DISTRIBUTION ═══ */
+.dist-hero{font-family:'Bodoni Moda',serif;font-size:clamp(3.5rem,9vw,7rem);font-weight:900;color:var(--amber);text-align:center;line-height:1;margin-bottom:.2rem;text-shadow:0 0 50px rgba(212,116,14,.2)}
+.dist-sub{font-family:'JetBrains Mono',monospace;font-size:clamp(.85rem,1.6vw,.95rem);color:var(--tm);text-align:center;letter-spacing:.15em;text-transform:uppercase;margin-bottom:2.5rem}
+.bar-chart{display:flex;flex-direction:column;gap:.8rem;margin:1.5rem 0}
+.bar-row{display:flex;align-items:center;gap:1rem}
+.bar-label{font-family:'JetBrains Mono',monospace;font-size:clamp(.85rem,1.6vw,.95rem);min-width:130px;text-align:right;color:var(--tm)}
+.bar-track{flex:1;height:38px;background:var(--sf);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:1rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;color:var(--bg);width:0;transition:width 1.4s cubic-bezier(.22,1,.36,1)}
+.bar-fill.gold{background:linear-gradient(90deg,var(--gold),var(--amber))}
+.s.v .bar-fill{width:var(--w)}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin:2rem 0}
+.stat-box{background:var(--sf);border:1px solid var(--bdr);border-radius:10px;padding:1.2rem;text-align:center}
+.stat-n{font-family:'Bodoni Moda',serif;font-size:2rem;font-weight:900;color:var(--amber);line-height:1}
+.stat-l{font-size:clamp(.8rem,1.5vw,.9rem);color:var(--tm);margin-top:.3rem}
+
+/* ═══ LOGOS ═══ */
+.logos{display:flex;align-items:center;justify-content:center;gap:2rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.logo-mark{height:52px;opacity:.9;filter:invert(1)}
+.logo-x{font-family:'Bodoni Moda',serif;font-size:2rem;color:var(--gold)}
+.stats{display:flex;justify-content:center;gap:3rem;margin:2rem 0;flex-wrap:wrap}
+.st{text-align:center}
+.st-n{font-family:'Bodoni Moda',serif;font-size:3rem;font-weight:900;color:var(--amber);line-height:1}
+.st-l{font-family:'JetBrains Mono',monospace;font-size:clamp(.75rem,1.4vw,.85rem);color:var(--tm);letter-spacing:.12em;text-transform:uppercase;margin-top:.3rem}
+
+/* ═══ HOLIDAY ═══ */
+.hol{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;margin:1.5rem 0}
+.hol-c{background:var(--sf);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;transition:all .3s}
+.hol-c:hover{border-color:var(--gold);box-shadow:0 0 24px rgba(200,164,78,.08)}
+.hol-c.hs{border-color:var(--amber)}
+.hol-img{width:100%;height:140px;object-fit:cover;display:block}
+.hol-body{padding:1.2rem}
+.hol-dt{font-family:'Bodoni Moda',serif;font-size:1.4rem;font-weight:900;color:var(--amber)}
+.hol-nm{font-family:'JetBrains Mono',monospace;font-size:clamp(.8rem,1.5vw,.95rem);color:var(--gold);text-transform:uppercase;letter-spacing:.08em}
+.hol-ds{font-size:.88rem;color:var(--tm);margin-top:.3rem;line-height:1.5}
+
+/* Mempool visualization */
+.mempool-viz{width:100%;height:140px;display:grid;grid-template-columns:repeat(16,1fr);grid-auto-rows:1fr;gap:2px;padding:3px;background:#080604;overflow:hidden}
+.mp-b{border-radius:1px;min-height:0}
+
+/* ═══ COMPARISON ═══ */
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;margin:2rem 0;align-items:start}
+.vs-col{background:var(--sf);border:1px solid var(--bdr);border-radius:12px;padding:1.8rem}
+.vs-col.dead{opacity:.45}
+.vs-col.alive{border-color:var(--gold);box-shadow:0 0 30px rgba(200,164,78,.08)}
+.vs-h{font-family:'Bodoni Moda',serif;font-size:1.3rem;font-weight:700;margin-bottom:.8rem}
+.vs-li{font-size:.92rem;color:var(--tm);padding:.35rem 0;display:flex;align-items:baseline;gap:.5rem}
+.vs-li::before{flex-shrink:0;font-weight:700;font-size:1rem}
+.vs-col.dead .vs-li::before{content:'\2717';color:rgba(180,30,30,.6)}
+.vs-col.alive .vs-li::before{content:'\2713';color:var(--gold)}
+.vs-divider{font-family:'Bodoni Moda',serif;font-size:1.6rem;color:var(--tm);align-self:center;text-align:center}
+
+/* ═══ TIERS ═══ */
+.tiers{display:flex;flex-direction:column;gap:1.5rem;margin:1.5rem 0}
+.tier{background:var(--sf);border:1px solid var(--bdr);border-radius:12px;padding:2rem;transition:all .4s;position:relative;overflow:hidden}
+.tier::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),var(--gold));opacity:0;transition:opacity .4s}
+.tier:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:var(--sh)}.tier:hover::before{opacity:1}
+.tier.t1{border-color:var(--amber);padding:2.5rem;border-width:2px}.tier.t1::before{opacity:1;background:linear-gradient(90deg,var(--amber),var(--gold))}
+.tier-top{display:flex;align-items:baseline;gap:1rem;margin-bottom:.6rem;flex-wrap:wrap}
+.tier-price{font-family:'Bodoni Moda',serif;font-size:3rem;font-weight:900;color:var(--amber);line-height:1}
+.tier-name{font-family:'Bodoni Moda',serif;font-size:1.3rem;font-weight:700}
+.tier-desc{color:var(--tm);font-size:.95rem;margin-bottom:1.2rem;max-width:52ch;line-height:1.6}
+.tier ul{list-style:none;padding:0;display:grid;gap:.6rem}
+.tier li{font-size:1rem;padding:.3rem 0;display:flex;align-items:baseline;gap:.8rem;line-height:1.55}
+.tier li::before{content:'\2713';color:var(--gold);font-weight:700;flex-shrink:0;font-size:1.15rem}
+
+/* CTA */
+.cta{background:var(--sf);border:2px solid var(--gold);border-radius:14px;padding:2.5rem;text-align:center;max-width:520px;margin:0 auto;box-shadow:0 0 50px rgba(200,164,78,.08);animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 30px rgba(200,164,78,.06)}50%{box-shadow:0 0 60px rgba(200,164,78,.15)}}
+.cta-steps{display:flex;flex-direction:column;gap:.6rem;text-align:left;max-width:340px;margin:1.5rem auto}
+.cta-s{display:flex;gap:.7rem;align-items:baseline;font-size:1.05rem}
+.cta-n{font-family:'Bodoni Moda',serif;font-size:1.5rem;font-weight:900;color:var(--amber);min-width:1.2rem}
+
+/* ═══ NAV ═══ */
+.deck-nav{position:fixed;top:0;left:0;right:0;z-index:250;display:flex;align-items:center;justify-content:center;gap:.2rem;padding:.8rem 1.5rem;background:rgba(11,9,8,.85);backdrop-filter:blur(8px);border-bottom:1px solid rgba(200,164,78,.06);opacity:0;transform:translateY(-100%);transition:opacity .5s,transform .5s;pointer-events:none}
+.deck-nav.show{opacity:1;transform:none;pointer-events:auto}
+.deck-nav a{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tf);text-decoration:none;padding:.3rem .6rem;border-radius:3px;letter-spacing:.05em;transition:color .2s}
+.deck-nav a:hover{color:var(--tm)}
+.deck-nav a.active{color:var(--amber)}
+.deck-nav a.active::after{content:'';display:block;width:100%;height:1.5px;background:var(--amber);margin-top:2px;border-radius:1px}
+
+/* ═══ TIER GROUPS ═══ */
+.tier-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;margin-top:1.2rem}
+.tier-group{background:rgba(200,164,78,.04);border:1px solid rgba(200,164,78,.1);border-radius:8px;padding:1.2rem 1.4rem}
+.tier-group-h{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--amber);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.8rem;padding-bottom:.5rem;border-bottom:1px solid rgba(200,164,78,.15)}
+.tier-group ul{gap:.4rem}
+.tier-group li{font-size:.95rem;line-height:1.5}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:800px){
+.theater{height:50vh}
+.s{padding:2.5rem 1.25rem;min-height:auto;justify-content:flex-start}
+.fmt-grid{grid-template-columns:repeat(2,1fr)}
+.mosaic{grid-template-columns:1fr}
+.lu-act{flex-direction:column;align-items:flex-start;gap:.8rem}
+.lu-photo{width:60px;height:60px}
+.lu-name{font-size:1.1rem}
+.lu-stats{gap:.3rem}
+.lu-stat{font-size:.8rem;padding:.3rem .6rem}
+.bar-label{min-width:80px;font-size:.8rem}
+.bar-track{height:32px}
+.quote-strip blockquote{font-size:clamp(1.4rem,4vw,2.8rem)}
+.stat-row{grid-template-columns:repeat(2,1fr)}
+.stat-box{padding:1rem}
+.vs{grid-template-columns:1fr;gap:.75rem}
+.vs-divider{display:none}
+.vs-col{padding:1.4rem}
+.hol{grid-template-columns:1fr}
+.tier-groups{grid-template-columns:1fr}
+.tier{padding:1.5rem}
+.tier.t1{padding:1.8rem}
+.tier-price{font-size:2.4rem}
+.napkin{width:95vw;padding:2rem 1.5rem 3rem}
+.napkin-row{flex-direction:column;gap:.3rem}
+.napkin-sep{display:none}
+.napkin-time{min-width:auto}
+.cta{padding:1.8rem 1.2rem}
+.logos{gap:1rem}
+.logo-mark{height:36px}
+.stats{gap:1.5rem}
+.st-n{font-size:2.2rem}
+}
+
+@media(max-width:480px){
+.theater{height:45vh}
+.s{padding:2rem 1rem}
+.fmt-grid{grid-template-columns:1fr}
+.fmt-card{aspect-ratio:16/9}
+.track{grid-template-columns:1fr}
+.tr{padding:1.2rem}
+.tr-n{font-size:2.2rem}
+.stamp{font-size:1.1rem}
+.sec-h{font-size:clamp(1.8rem,7vw,2.8rem)}
+.tier-top{flex-direction:column;gap:.3rem}
+.tier-price{font-size:2rem}
+.stat-row{grid-template-columns:1fr}
+.bar-row{flex-direction:column;align-items:stretch;gap:.3rem}
+.bar-label{text-align:left;min-width:auto}
+.dist-hero{font-size:clamp(2.5rem,12vw,5rem)}
+.napkin{transform:rotate(0);padding:1.5rem 1.2rem 2.5rem}
+.napkin-title{font-size:1.3rem}
+.cta-steps{max-width:100%}
+.hero-copy{font-size:clamp(1.1rem,3vw,1.5rem)}
+.deck-nav{padding:.6rem 1rem}
+.deck-nav a{font-size:10px;padding:.4rem .6rem;min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center}
+.tao-room{padding:2rem 1rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="deck-nav" id="dnav">
+  <a href="#s1">01</a><a href="#s2">02</a><a href="#s3">03</a><a href="#s4">04</a><a href="#s5">05</a><a href="#s6">06</a><a href="#s7">07</a><a href="#s8">08</a><a href="#s9">09</a><a href="#s10">10</a>
+</nav>
+<div class="progress" id="prog"></div>
+<div class="pgc" id="pgc"></div>
+
+<!-- ═══ CURTAIN ═══ -->
+<div class="theater" id="theater" onclick="openCurtain()">
+  <video class="theater-video" autoplay muted loop playsinline>
+    <source src="New%20assets/Sequence%2001.mp4" type="video/mp4">
+  </video>
+  <div class="stage-glow"></div>
+  <div class="stage-vig"></div>
+  <div class="c-photo l"></div>
+  <div class="c-photo r"></div>
+  <div class="curtain-hint" style="position:absolute;inset:0;z-index:11;display:flex;align-items:center;justify-content:center;pointer-events:none">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:clamp(.8rem,1.5vw,1rem);color:rgba(237,230,218,.6);letter-spacing:.25em;text-transform:uppercase;animation:pulse-hint 2s ease-in-out infinite;text-shadow:0 2px 10px rgba(0,0,0,.8)">TAP TO ENTER</div>
+  </div>
+  <div class="reveal" style="justify-content:flex-end;padding-bottom:3.5rem">
+    <div style="font-family:'Bodoni Moda',serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:900;color:var(--tx);letter-spacing:.15em;text-transform:uppercase;text-shadow:0 2px 20px rgba(0,0,0,.7)">PART III</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:clamp(.9rem,1.8vw,1.15rem);color:var(--amber);letter-spacing:.25em;text-transform:uppercase;margin-top:.8rem;text-shadow:0 2px 12px rgba(0,0,0,.7)">April 27 &ensp;&bull;&ensp; Las Vegas &ensp;&bull;&ensp; 2026</div>
+  </div>
+</div>
+
+<div id="deck-content">
+<div style="text-align:center;padding:3rem 0 0">
+  <img src="New%20assets/HotstyleTakeover_Logo_transparent.png" alt="Hotstyle" style="max-width:min(50vw,320px);height:auto;filter:drop-shadow(0 0 30px rgba(212,116,14,.2))">
+</div>
+
+<!-- ═══ 01 THE SHOW (Marquee Board) ═══ -->
+<section class="s" id="s1" style="padding-top:1rem">
+  <div class="snum">01</div>
+  <h2 class="sec-h blink">THE SHOW</h2>
+  <p style="font-family:'Press Start 2P',monospace;font-size:clamp(.5rem,1vw,.7rem);color:#FF7A2E;letter-spacing:.08em;margin-bottom:1.5rem;text-shadow:0 0 12px rgba(255,122,46,.4),0 0 30px rgba(255,122,46,.15);line-height:1.8">300 TICKETS &ensp;&bull;&ensp; APRIL 27, 2026 &ensp;&bull;&ensp; BTC CONFERENCE &ensp;&bull;&ensp; LAS VEGAS</p>
+
+  <div class="hero-copy">The best nights don't announce themselves. They slide in wearing something inappropriate, buy the room a round, and leave behind the kind of silence that only happens after a crowd has been laughing too hard to breathe.</div>
+  <div class="hero-copy" style="font-size:clamp(1.1rem,2.2vw,1.6rem)">This is a show that treats Bitcoin people like they deserve a real night out — not a panel, not a fireside chat, not a networking hour with name tags.</div>
+
+  <div class="fmt-grid">
+    <div class="fmt-card"><img src="fmt-podcast.jpg" alt="Podcast"><div class="fmt-ov"><div class="fmt-nm">Podcast</div></div></div>
+    <div class="fmt-card"><img src="fmt-comedy.jpg" alt="Comedy"><div class="fmt-ov"><div class="fmt-nm">Comedy</div></div></div>
+    <div class="fmt-card"><img src="fmt-music.jpg" alt="Live Music"><div class="fmt-ov"><div class="fmt-nm">Live Music</div></div></div>
+    <div class="fmt-card"><img src="fmt-dj.jpg" alt="DJ"><div class="fmt-ov"><div class="fmt-nm">DJ</div></div></div>
+    <div class="fmt-card"><img src="fmt-bar.jpg" alt="Open Bar"><div class="fmt-ov"><div class="fmt-nm">Open Bar</div></div></div>
+  </div>
+
+  <div class="mosaic" style="margin-top:1rem">
+    <img src="event-crowd.jpg" alt="Crowd">
+    <img src="event-stage.jpg" alt="Stage">
+    <img src="event-costume.jpg" alt="Performance">
+    <img src="event-singer.jpg" alt="Singer">
+    <img src="event-band.jpg" alt="Band">
+    <img src="event-venue.jpg" alt="Venue">
+  </div>
+</section>
+
+<!-- ═══ QUOTE ═══ -->
+<div class="quote-strip">
+  <blockquote>The show <span>Bitcoin talks about</span> for the rest of the conference.</blockquote>
+</div>
+
+<!-- ═══ 02 THE LINEUP (MARQUEE) ═══ -->
+<section class="s" id="s2">
+  <div class="snum">02</div>
+  <h2 class="sec-h blink">THE LINEUP</h2>
+
+  <div class="lineup">
+    <div class="lu-act">
+      <img class="lu-photo" src="New%20assets/Marty-Bent--230.jpg" alt="Marty Bent">
+      <div class="lu-info">
+        <div class="lu-name">MARTY BENT</div>
+        <div class="lu-role">TFTC / Rabbit Hole Recap</div>
+        <div class="lu-stats"><span class="lu-stat">268K on X</span><span class="lu-stat">390+ episodes</span><span class="lu-stat">Ten31 VC</span></div>
+      </div>
+    </div>
+    <div class="lu-act">
+      <img class="lu-photo" src="New%20assets/Matt-400x400.jpg" alt="Matt Odell">
+      <div class="lu-info">
+        <div class="lu-name">MATT ODELL</div>
+        <div class="lu-role">Rabbit Hole Recap / Nostr Pioneer</div>
+        <div class="lu-stats"><span class="lu-stat">200K+ pre-delete</span><span class="lu-stat">OpenSats</span><span class="lu-stat">Co-host RHR</span></div>
+      </div>
+    </div>
+    <div class="lu-act">
+      <img class="lu-photo" src="New%20assets/JeremiahWatkin.jpg" alt="Jeremiah Watkins">
+      <div class="lu-info">
+        <div class="lu-name">JEREMIAH WATKINS</div>
+        <div class="lu-role">Kill Tony / The Comedy Store</div>
+        <div class="lu-stats"><span class="lu-stat">221K Instagram</span><span class="lu-stat">190K+ YouTube</span><span class="lu-stat">GQ "5 Funniest"</span></div>
+      </div>
+    </div>
+    <div class="lu-act">
+      <img class="lu-photo" src="New%20assets/John_Goblikon.webp" alt="John Goblikon">
+      <div class="lu-info">
+        <div class="lu-name">JOHN GOBLIKON</div>
+        <div class="lu-role">Nekrogoblikon / All Things Comedy (Bill Burr)</div>
+        <div class="lu-stats"><span class="lu-stat">74M+ YT views</span><span class="lu-stat">251K subs</span><span class="lu-stat">133K Instagram</span></div>
+      </div>
+    </div>
+    <div class="lu-act">
+      <img class="lu-photo" src="head-thomas.jpg" alt="Thomas Pacchia">
+      <div class="lu-info">
+        <div class="lu-name">THOMAS PACCHIA</div>
+        <div class="lu-role">PubKey Founder / Fortune / Fox Business</div>
+        <div class="lu-stats"><span class="lu-stat">15.9K @PubKey</span><span class="lu-stat">Fidelity alum</span><span class="lu-stat">Sold Trump a BTC burger</span></div>
+      </div>
+    </div>
+    <div class="lu-act">
+      <img class="lu-photo" src="New%20assets/James.png" alt="James O'Beirne">
+      <div class="lu-info">
+        <div class="lu-name">JAMES O'BEIRNE</div>
+        <div class="lu-role">Bitcoin Core / OP_VAULT / Chaincode Labs</div>
+        <div class="lu-stats"><span class="lu-stat">13.7K on X</span><span class="lu-stat">Bitcoin Core dev</span><span class="lu-stat">Bitnomial</span></div>
+      </div>
+    </div>
+    <div class="lu-tba">Plus guests we're not announcing yet.</div>
+  </div>
+</section>
+
+<!-- ═══ 03 YEAR THREE ═══ -->
+<section class="s" id="s3">
+  <div class="snum">03</div>
+  <h2 class="sec-h blink">YEAR THREE</h2>
+  <p class="sub">Most conference side events die after Year 1. Nobody asks for them back. This one keeps selling out.</p>
+  <div class="track-wrap">
+    <div class="track-bg"><img src="page_05.png" alt="Theater"></div>
+    <div class="track">
+      <div class="tr"><div class="tr-yr">Year 1</div><div class="tr-n">200</div><div class="tr-d">Tickets sold<br>Nashville</div><div class="stamp">Sold Out</div></div>
+      <div class="tr"><div class="tr-yr">Year 2</div><div class="tr-n">300</div><div class="tr-d">Tickets sold<br>Las Vegas, Plaza Showroom</div><div class="stamp">Sold Out</div></div>
+      <div class="tr"><div class="tr-yr">Year 3</div><div class="tr-n" style="color:var(--gold)">300</div><div class="tr-d">Tickets<br>Tao at the Venetian &bull; BTC Inc Official</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 04 THE NIGHT (NAPKIN) ═══ -->
+<section class="napkin-scene s" id="s4">
+  <div class="napkin">
+    <div class="napkin-brand">PubKey</div>
+    <div class="napkin-title">How the night goes</div>
+    <div class="napkin-row"><div class="napkin-time">2:00 PM</div><div class="napkin-sep">|</div><div class="napkin-desc">Doors open. Bar's open. Cocktails doing what cocktails do.</div></div>
+    <div class="napkin-row"><div class="napkin-time">3:00 PM</div><div class="napkin-sep">|</div><div class="napkin-desc">RHR goes live. Comedy follows. The kind where you laugh harder than you expected.</div></div>
+    <div class="napkin-row"><div class="napkin-time">3:45 PM</div><div class="napkin-sep">|</div><div class="napkin-desc">Intermission. Fifteen minutes. Breathe. Get another round.</div></div>
+    <div class="napkin-row"><div class="napkin-time">4:00 PM</div><div class="napkin-sep">|</div><div class="napkin-desc">Part two. Music. More comedy. A few things we're not announcing because we believe in surprises.</div></div>
+    <div class="napkin-row"><div class="napkin-time">5:00 PM</div><div class="napkin-sep">|</div><div class="napkin-desc">Show ends. Las Vegas gets you back.</div></div>
+  </div>
+</section>
+
+<!-- ═══ THE ROOM ═══ -->
+<div class="tao-room" style="padding:3rem 2rem;text-align:center;max-width:900px;margin:0 auto">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:clamp(.75rem,1.4vw,.85rem);color:var(--amber);letter-spacing:.2em;text-transform:uppercase;margin-bottom:1rem">Tao Nightclub &mdash; The Venetian</div>
+  <div style="border-radius:12px;overflow:hidden;border:1px solid var(--bdr);box-shadow:var(--sh)">
+    <img src="New%20assets/Tao-Nightclub-Table-Floor-Plan.jpg" alt="Tao Nightclub Floor Plan" style="width:100%;height:auto;display:block;opacity:.85">
+  </div>
+</div>
+
+<!-- ═══ 05 THE REACH ═══ -->
+<section class="s" id="s5">
+  <div class="snum">05</div>
+  <h2 class="sec-h blink">THE REACH</h2>
+  <div class="dist-hero" data-c="1.4" data-sx="M+">0</div>
+  <div class="dist-sub">Combined social reach of confirmed talent + PubKey + BTC Inc</div>
+  <div class="bar-chart" style="max-width:700px;width:100%;margin:2rem auto">
+    <div class="bar-row"><div class="bar-label">Marty Bent</div><div class="bar-track"><div class="bar-fill gold" style="--w:85%">268K</div></div></div>
+    <div class="bar-row"><div class="bar-label">Nekrogoblikon</div><div class="bar-track"><div class="bar-fill gold" style="--w:78%">251K</div></div></div>
+    <div class="bar-row"><div class="bar-label">Watkins (IG)</div><div class="bar-track"><div class="bar-fill gold" style="--w:70%">221K</div></div></div>
+    <div class="bar-row"><div class="bar-label">Odell (pre-del)</div><div class="bar-track"><div class="bar-fill gold" style="--w:63%">200K+</div></div></div>
+    <div class="bar-row"><div class="bar-label">BTC Inc</div><div class="bar-track"><div class="bar-fill gold" style="--w:95%">317K</div></div></div>
+  </div>
+  <div class="stat-row" style="max-width:700px">
+    <div class="stat-box"><div class="stat-n">3.1M</div><div class="stat-l">Impressions / 5 mo</div></div>
+    <div class="stat-box"><div class="stat-n">353K</div><div class="stat-l">Video views</div></div>
+    <div class="stat-box"><div class="stat-n">7.4%</div><div class="stat-l">Engagement</div></div>
+    <div class="stat-box"><div class="stat-n">4-5x</div><div class="stat-l">Industry avg</div></div>
+  </div>
+  <p class="sub" style="text-align:center;margin:1.5rem auto 0">PubKey's content numbers from five months of real data. When clips from the show go out, this is the engine behind them.</p>
+</section>
+
+<!-- ═══ 06 THE PARTNERS ═══ -->
+<section class="s" id="s6">
+  <div class="snum">06</div>
+  <h2 class="sec-h blink">THE PARTNERS</h2>
+  <div class="logos">
+    <img class="logo-mark" src="btc-inc-logo.png" alt="BTC Inc">
+    <span class="logo-x">&times;</span>
+    <span style="font-family:'Bodoni Moda',serif;font-size:2rem;font-weight:900;letter-spacing:.05em">PUBKEY</span>
+  </div>
+  <p class="sub" style="text-align:center;margin:0 auto 2rem">PubKey is the bar where Bitcoin people go. Not because someone organized a meetup. Because it's where you go. 300+ Bitcoin events since 2023. Two venues. BTC Inc gave Bitcoin its homecoming. Seven years. Five cities. 30,000 attendees. Bear market and bull, they kept showing up for the community. PubKey is their official variety show partner because we believe in the same thing they do — that Bitcoiners deserve a great night.</p>
+  <div class="stats">
+    <div class="st"><div class="st-n" data-c="300" data-sx="+">0</div><div class="st-l">Bitcoin Events</div></div>
+    <div class="st"><div class="st-n">2</div><div class="st-l">Venues</div></div>
+    <div class="st"><div class="st-n">135K+</div><div class="st-l">Guests since 2022</div></div>
+  </div>
+</section>
+
+<!-- ═══ 07 THE CALENDAR ═══ -->
+<section class="s" id="s7">
+  <div class="snum">07</div>
+  <h2 class="sec-h blink">THE CALENDAR</h2>
+  <p class="sub">The show is one night. These are the other nights. Bitcoin's cultural calendar, hosted at PubKey. Presenting Sponsors pick one.</p>
+  <div class="hol">
+    <div class="hol-c hs"><img class="hol-img" src="event-stage.jpg" alt="Hotstyle Stage"><div class="hol-body"><div class="hol-dt">Apr 27</div><div class="hol-nm">Hotstyle Takeover III</div><div class="hol-ds">The show. Tao at the Venetian. BTC Conference. 300 people. Filmed.</div></div></div>
+    <div class="hol-c"><div class="mempool-viz">
+  <div class="mp-b" style="background:#4ade80;grid-column:span 2;grid-row:span 2"></div>
+  <div class="mp-b" style="background:#86efac"></div>
+  <div class="mp-b" style="background:#fbbf24;grid-column:span 2"></div>
+  <div class="mp-b" style="background:#f97316"></div>
+  <div class="mp-b" style="background:#4ade80"></div>
+  <div class="mp-b" style="background:#ef4444;grid-column:span 3;grid-row:span 2"></div>
+  <div class="mp-b" style="background:#84cc16"></div>
+  <div class="mp-b" style="background:#eab308;grid-column:span 2"></div>
+  <div class="mp-b" style="background:#f59e0b"></div>
+  <div class="mp-b" style="background:#4ade80;grid-column:span 2"></div>
+  <div class="mp-b" style="background:#f97316;grid-column:span 2;grid-row:span 2"></div>
+  <div class="mp-b" style="background:#86efac"></div>
+  <div class="mp-b" style="background:#fbbf24"></div>
+  <div class="mp-b" style="background:#dc2626;grid-column:span 2"></div>
+  <div class="mp-b" style="background:#4ade80"></div>
+  <div class="mp-b" style="background:#84cc16;grid-column:span 2"></div>
+  <div class="mp-b" style="background:#eab308"></div>
+  <div class="mp-b" style="background:#f97316"></div>
+  <div class="mp-b" style="background:#4ade80;grid-column:span 3"></div>
+  <div class="mp-b" style="background:#fbbf24;grid-column:span 2;grid-row:span 2"></div>
+  <div class="mp-b" style="background:#ef4444"></div>
+  <div class="mp-b" style="background:#86efac;grid-column:span 2"></div>
+  <div class="mp-b" style="background:#f59e0b;grid-column:span 2"></div>
+  <div class="mp-b" style="background:#4ade80"></div>
+  <div class="mp-b" style="background:#dc2626;grid-column:span 2;grid-row:span 2"></div>
+  <div class="mp-b" style="background:#84cc16"></div>
+  <div class="mp-b" style="background:#eab308;grid-column:span 3"></div>
+  <div class="mp-b" style="background:#4ade80;grid-column:span 2"></div>
+  <div class="mp-b" style="background:#f97316"></div>
+  <div class="mp-b" style="background:#86efac;grid-column:span 2"></div>
+  <div class="mp-b" style="background:#fbbf24"></div>
+  <div class="mp-b" style="background:#4ade80"></div>
+  <div class="mp-b" style="background:#ef4444;grid-column:span 2"></div>
+  <div class="mp-b" style="background:#84cc16;grid-column:span 3"></div>
+</div><div class="hol-body"><div class="hol-dt">Jan 3</div><div class="hol-nm">Genesis Block Day</div><div class="hol-ds">The birthday of Bitcoin. Block 0. Sixteen years of unbroken consensus.</div></div></div>
+    <div class="hol-c"><img class="hol-img" src="New%20assets/NYC%20PIZZA.webp" alt="NYC Cheese Pie"><div class="hol-body"><div class="hol-dt">May 22</div><div class="hol-nm">Bitcoin Pizza Day</div><div class="hol-ds">10,000 BTC for two pizzas. Block sponsored this at PubKey last year.</div></div></div>
+    <div class="hol-c"><img class="hol-img" src="whitepaper.jpg" alt="Bitcoin Whitepaper" style="object-position:top"><div class="hol-body"><div class="hol-dt">Oct 31</div><div class="hol-nm">White Paper Day</div><div class="hol-ds">The day Satoshi published the paper. Halloween, obviously.</div></div></div>
+  </div>
+</section>
+
+<!-- ═══ QUOTE 2 ═══ -->
+<div class="quote-strip">
+  <blockquote>Your brand, inside the show <span>300 people will describe</span> to strangers on the flight home.</blockquote>
+</div>
+
+<!-- ═══ 08 THE ALTERNATIVE ═══ -->
+<section class="s" id="s8">
+  <div class="snum">08</div>
+  <h2 class="sec-h blink">THE ALTERNATIVE</h2>
+  <div class="vs">
+    <div class="vs-col dead">
+      <div class="vs-h">Conference Booth</div>
+      <div style="font-family:'Bodoni Moda',serif;font-size:2rem;font-weight:900;color:var(--tm);margin-bottom:.8rem">$25-50k</div>
+      <div class="vs-li">One day, then it's over</div>
+      <div class="vs-li">Badge scans you'll never follow up on</div>
+      <div class="vs-li">Logo on a banner nobody photographs</div>
+      <div class="vs-li">Zero content produced</div>
+      <div class="vs-li">Same audience as every other booth</div>
+    </div>
+    <div class="vs-divider">vs.</div>
+    <div class="vs-col alive">
+      <div class="vs-h" style="color:var(--gold);font-size:1.5rem">Presenting Sponsor</div>
+      <div style="font-family:'Bodoni Moda',serif;font-size:2.4rem;font-weight:900;color:var(--amber);margin-bottom:.8rem">$25k / year</div>
+      <div class="vs-li" style="font-size:1.05rem">2 events across the calendar year</div>
+      <div class="vs-li" style="font-size:1.05rem">13+ branded content assets you own</div>
+      <div class="vs-li" style="font-size:1.05rem">Title credit in clips shared to 1.4M+ reach</div>
+      <div class="vs-li" style="font-size:1.05rem">Company merch table at the venue</div>
+      <div class="vs-li" style="font-size:1.05rem">The audience that defines Bitcoin culture</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 09 TWO WAYS IN ═══ -->
+<section class="s" id="s9">
+  <div class="snum">09</div>
+  <h2 class="sec-h blink">TWO WAYS IN</h2>
+  <div class="tiers">
+    <div class="tier t1">
+      <div class="tier-top"><div class="tier-price">$25k</div><div class="tier-name" style="color:var(--amber)">Presenting Sponsor</div></div>
+      <div class="tier-desc">The name on the show. Your brand in every clip, every mention, every moment.</div>
+      <div class="tier-groups">
+        <div class="tier-group">
+          <div class="tier-group-h">The Show</div>
+          <ul>
+            <li>"Hotstyle Takeover III, presented by [You]" — title card on all filmed content</li>
+            <li>On-stage mentions throughout the show</li>
+            <li>10 VIP + 10 GA tickets ($4,000 face value)</li>
+            <li>Company merch table at the venue</li>
+          </ul>
+        </div>
+        <div class="tier-group">
+          <div class="tier-group-h">The Content</div>
+          <ul>
+            <li>7-9 branded short-form clips (Hotstyle + your holiday night)</li>
+            <li>4 dedicated social posts across all channels</li>
+            <li>Full photo package from both events</li>
+            <li>Clip repost rights — use everything on your channels</li>
+          </ul>
+        </div>
+        <div class="tier-group">
+          <div class="tier-group-h">Beyond the Show</div>
+          <ul>
+            <li>1 Bitcoin holiday night at PubKey NYC — your pick (Pizza Day, Genesis Block, or White Paper Day)</li>
+            <li>First look at Hotstyle IV Nashville 2027 — right of first refusal</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-top"><div class="tier-price">$10k</div><div class="tier-name" style="color:var(--gold)">Show Sponsor</div></div>
+      <div class="tier-desc">Your brand inside the biggest comedy event of the conference. In the room when it matters.</div>
+      <div class="tier-groups">
+        <div class="tier-group">
+          <div class="tier-group-h">The Show</div>
+          <ul>
+            <li>Logo in all Hotstyle filmed content and social clips</li>
+            <li>On-stage mention during the show</li>
+            <li>6 VIP + 4 GA tickets</li>
+          </ul>
+        </div>
+        <div class="tier-group">
+          <div class="tier-group-h">The Content</div>
+          <ul>
+            <li>1-2 branded short-form clips with your logo</li>
+            <li>1 dedicated social post (X / Nostr)</li>
+            <li>Event photo selects from the night</li>
+            <li>Clip repost rights — use on your channels</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 10 THE ASK ═══ -->
+<section class="s" id="s10">
+  <div class="snum">10</div>
+  <h2 class="sec-h blink">NEXT STEPS</h2>
+  <div style="height:1.5rem"></div>
+  <div style="text-align:center">
+    <div style="font-family:'Bodoni Moda',serif;font-size:clamp(1.4rem,3vw,2rem);font-weight:900;line-height:1.2;margin-bottom:1rem">One Presenting Sponsor.</div>
+    <div style="font-family:'Bodoni Moda',serif;font-size:clamp(1.4rem,3vw,2rem);font-weight:900;line-height:1.2;margin-bottom:1rem">Show Sponsors alongside.</div>
+    <div style="font-family:'Bodoni Moda',serif;font-size:clamp(1.4rem,3vw,2rem);font-weight:900;font-style:italic;color:var(--gold);line-height:1.2;margin-bottom:2rem">Either way, your brand is in the room.</div>
+  </div>
+  <p class="sub" style="text-align:center;margin:0 auto 2.5rem">Year 1 sold out. Year 2 sold out. Year 3 has BTC Inc. The only question is whether your brand is in the room when the cameras roll.</p>
+  <div class="cta" style="text-align:center">
+    <div class="cta-steps">
+      <div class="cta-s"><div class="cta-n">1</div><div>Talk. One call. Twenty minutes.</div></div>
+      <div class="cta-s"><div class="cta-n">2</div><div>Pick your tier and your holiday.</div></div>
+      <div class="cta-s"><div class="cta-n">3</div><div>April 27. Las Vegas. Your name on the show.</div></div>
+    </div>
+  </div>
+  <div style="font-family:'Press Start 2P',monospace;font-size:clamp(.5rem,1vw,.7rem);color:#FF7A2E;margin-top:3rem;letter-spacing:.08em;text-shadow:0 0 12px rgba(255,122,46,.4),0 0 30px rgba(255,122,46,.15);line-height:1.8">HOTSTYLE TAKEOVER III &ensp;&bull;&ensp; APRIL 27, 2026 &ensp;&bull;&ensp; LAS VEGAS &ensp;&bull;&ensp; PRODUCED BY PUBKEY</div>
+</section>
+</div><!-- /deck-content -->
+
+<script>
+const ss=document.querySelectorAll('.s,.quote-strip'),prog=document.getElementById('prog'),pgc=document.getElementById('pgc');
+const allSec=[document.getElementById('theater'),...ss];
+const tot=allSec.length;
+const navLinks=document.querySelectorAll('#dnav a');
+
+function checkVisible(){
+  allSec.forEach(function(s){
+    var r=s.getBoundingClientRect();
+    if(r.top<window.innerHeight&&r.bottom>0){
+      s.classList.add('v');
+      var i=allSec.indexOf(s);
+      if(i>=0){pgc.textContent=(i+1)+' / '+tot;prog.style.width=((i+1)/tot*100)+'%'}
+      if(s.id==='s5'||s.id==='s6')ac();
+      if(s.id&&s.id.startsWith('s')){navLinks.forEach(function(a){a.classList.remove('active')});var link=document.querySelector('#dnav a[href="#'+s.id+'"]');if(link)link.classList.add('active')}
+    }
+  });
+}
+
+function openCurtain(){
+  var t=document.getElementById('theater');
+  if(t.classList.contains('open'))return;
+  t.classList.add('open');
+  t.style.cursor='default';
+  document.getElementById('deck-content').classList.add('show');
+  setTimeout(function(){
+    document.getElementById('dnav').classList.add('show');
+    checkVisible();
+    setTimeout(checkVisible,300);
+  },1200);
+}
+
+document.getElementById('theater').addEventListener('click',openCurtain);
+document.getElementById('theater').addEventListener('touchend',function(e){
+  openCurtain();
+  e.preventDefault();
+});
+
+var obs=new IntersectionObserver(function(ee){ee.forEach(function(e){
+  if(e.isIntersecting){
+    e.target.classList.add('v');
+    var i=allSec.indexOf(e.target);
+    if(i>=0){pgc.textContent=(i+1)+' / '+tot;prog.style.width=((i+1)/tot*100)+'%'}
+    if(e.target.id==='s5'||e.target.id==='s6')ac();
+    if(e.target.id&&e.target.id.startsWith('s')){navLinks.forEach(function(a){a.classList.remove('active')});var link=document.querySelector('#dnav a[href="#'+e.target.id+'"]');if(link)link.classList.add('active')}
+  }
+})},{threshold:0.05,rootMargin:'0px 0px 80px 0px'});
+allSec.forEach(function(s){obs.observe(s)});
+
+var ca=false;function ac(){if(ca)return;ca=true;document.querySelectorAll('[data-c]').forEach(function(el){var t=parseFloat(el.dataset.c),sx=el.dataset.sx||'',isFloat=t%1!==0,d=1200,st=performance.now();(function f(n){var p=Math.min((n-st)/d,1),v=t*(1-Math.pow(1-p,3));el.textContent=(isFloat?v.toFixed(1):Math.floor(v))+sx;if(p<1)requestAnimationFrame(f)})(st)})}
+
+document.addEventListener('keydown',function(e){if(e.key===' '||e.key==='Enter'){var t=document.getElementById('theater');if(!t.classList.contains('open')){openCurtain();e.preventDefault()}}});
+window.addEventListener('scroll',checkVisible,{passive:true});
+</script>
+</body>
+</html>
