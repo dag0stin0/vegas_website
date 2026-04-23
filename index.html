@@ -56,6 +56,24 @@ video::-webkit-media-controls-panel{display:none!important}
 .reveal{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;opacity:0;transform:scale(.96);transition:opacity 1.2s ease .5s,transform 1.2s ease .5s}
 .theater.open .reveal{opacity:1;transform:scale(1)}
 .reveal-m{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--tm);letter-spacing:.22em;text-transform:uppercase}
+/* ═══ PRESENTED BY INTRO ═══ */
+.intro{position:fixed;inset:0;z-index:10000;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;opacity:1;transition:opacity .9s cubic-bezier(.22,1,.36,1),visibility .9s}
+.intro.done{opacity:0;visibility:hidden;pointer-events:none}
+.intro::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(200,164,78,.08) 0%,transparent 70%);pointer-events:none}
+.intro::after{content:'';position:absolute;inset:0;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;mix-blend-mode:overlay}
+.intro-inner{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(1.5rem,3.5vh,2.5rem);padding:3rem;text-align:center;max-width:92vw}
+.intro-inner::before,.intro-inner::after{content:'';display:block;width:clamp(120px,22vw,240px);height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);opacity:0;transform:scaleX(.3);transform-origin:center;animation:introHairline 1.1s cubic-bezier(.22,1,.36,1) .2s forwards}
+.intro-inner::after{animation-delay:2.4s}
+.intro-label{font-family:'JetBrains Mono',monospace;font-size:clamp(.78rem,1.4vw,1rem);color:rgba(255,255,255,.75);letter-spacing:.48em;text-transform:uppercase;padding-left:.48em;opacity:0;transform:translateY(10px);animation:introFadeUp .9s cubic-bezier(.22,1,.36,1) .6s forwards}
+.intro-logo{height:clamp(64px,11vw,132px);width:auto;display:block;opacity:0;transform:translateY(14px) scale(.96);filter:drop-shadow(0 6px 28px rgba(0,0,0,.7));animation:introReveal 1.2s cubic-bezier(.22,1,.36,1) 1s forwards}
+.intro-tag{font-family:'Bodoni Moda',serif;font-style:italic;font-weight:400;font-size:clamp(.78rem,1.3vw,1rem);color:rgba(255,255,255,.55);letter-spacing:.12em;opacity:0;transform:translateY(8px);animation:introFadeUp .9s cubic-bezier(.22,1,.36,1) 1.8s forwards}
+.intro-skip{position:absolute;bottom:2rem;right:2rem;background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;padding:.55rem 1rem;border-radius:3px;cursor:pointer;opacity:0;animation:introFadeUp .6s ease 2.4s forwards;transition:color .2s,border-color .2s,background .2s}
+.intro-skip:hover{color:#fff;border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.05)}
+@keyframes introFadeUp{to{opacity:1;transform:translateY(0)}}
+@keyframes introReveal{to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes introHairline{to{opacity:.7;transform:scaleX(1)}}
+body.intro-locked{overflow:hidden}
+@media(prefers-reduced-motion:reduce){.intro-inner::before,.intro-inner::after,.intro-label,.intro-logo,.intro-tag,.intro-skip{animation:none;opacity:1;transform:none}}
 .rspo{height:54px;opacity:0;transform:translateY(12px);transition:opacity .6s ease,transform .6s ease;filter:drop-shadow(0 2px 10px rgba(0,0,0,.7))}
 .rspo:nth-child(1){transition-delay:1.8s}
 .rspo:nth-child(2){transition-delay:2.0s}
@@ -478,6 +496,16 @@ video::-webkit-media-controls-panel{display:none!important}
 </style>
 </head>
 <body>
+<!-- ═══ PRESENTED BY INTRO ═══ -->
+<div id="intro" class="intro" role="dialog" aria-label="Presented by Block">
+  <div class="intro-inner">
+    <span class="intro-label">Presented By</span>
+    <img src="LOGOS/block-lockup_white.svg" alt="Block" class="intro-logo">
+    <span class="intro-tag">Hotstyle Takeover III &nbsp;&#183;&nbsp; Las Vegas &nbsp;&#183;&nbsp; April 27</span>
+  </div>
+  <button type="button" class="intro-skip" aria-label="Skip intro">Skip &rarr;</button>
+</div>
+
 <a href="#s1" class="skip-link">Skip to content</a>
 
 <img src="dolphin.png" alt="" class="dolphin d-left" id="dolphin1">
@@ -766,6 +794,27 @@ video::-webkit-media-controls-panel{display:none!important}
 </div><!-- /deck-content -->
 
 <script>
+// ═══ PRESENTED BY INTRO ═══
+(function(){
+  var intro=document.getElementById('intro');
+  if(!intro)return;
+  document.body.classList.add('intro-locked');
+  var dismissed=false;
+  function dismiss(){
+    if(dismissed)return;
+    dismissed=true;
+    intro.classList.add('done');
+    document.body.classList.remove('intro-locked');
+    setTimeout(function(){if(intro&&intro.parentNode)intro.parentNode.removeChild(intro);},1000);
+  }
+  var reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var autoMs=reduce?1200:3600;
+  var auto=setTimeout(dismiss,autoMs);
+  function manual(){clearTimeout(auto);dismiss();}
+  intro.addEventListener('click',manual);
+  document.addEventListener('keydown',function(e){if(!dismissed&&(e.key==='Escape'||e.key==='Enter'||e.key===' ')){e.preventDefault();manual();}});
+})();
+
 const ss=document.querySelectorAll('.s'),prog=document.getElementById('prog'),pgc=document.getElementById('pgc');
 const allSec=[...ss];
 const tot=allSec.length;
